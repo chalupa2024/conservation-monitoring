@@ -454,6 +454,10 @@
         </div>
 
         <div class="main-content">
+            <div id="debug-info" style="background: #fff3cd; border: 2px solid #ffc107; padding: 15px; margin-bottom: 20px; border-radius: 8px; font-family: monospace; font-size: 0.9em;">
+                <strong>Debug Info:</strong>
+                <div id="debug-output">Initializing...</div>
+            </div>
             <div id="content">
                 <div class="loading">
                     <h3>Loading monitoring data...</h3>
@@ -512,8 +516,19 @@
             }
         }
 
+        function updateDebug(message) {
+            const debugOutput = document.getElementById('debug-output');
+            if (debugOutput) {
+                debugOutput.innerHTML += '<br>' + message;
+            }
+        }
+
         function processData(rows) {
             console.log('Processing data, total rows:', rows.length);
+            console.log('First row (headers):', rows[0]);
+
+            updateDebug(`Total rows from sheet: ${rows.length}`);
+            updateDebug(`Headers: ${rows[0]?.join(', ')}`);
 
             // Skip header row
             const dataRows = rows.slice(1);
@@ -542,6 +557,14 @@
 
             console.log('Processed projects:', allProjects.length);
             console.log('Sample project:', allProjects[0]);
+            console.log('Sample project name:', allProjects[0]?.projectName);
+            console.log('Sample project number:', allProjects[0]?.projectNumber);
+
+            updateDebug(`Processed projects: ${allProjects.length}`);
+            if (allProjects.length > 0) {
+                updateDebug(`Sample project name: "${allProjects[0].projectName}"`);
+                updateDebug(`Sample project number: "${allProjects[0].projectNumber}"`);
+            }
 
             updateStats();
             renderProjects();
@@ -609,6 +632,7 @@
             });
 
             console.log('Filtered projects:', filtered.length);
+            updateDebug(`Filtered projects to display: ${filtered.length}`);
 
             const content = document.getElementById('content');
 
@@ -634,6 +658,8 @@
             });
 
             console.log('Number of groups:', Object.keys(groupedProjects).length);
+            updateDebug(`Number of project groups: ${Object.keys(groupedProjects).length}`);
+            updateDebug(`Group names: ${Object.keys(groupedProjects).slice(0, 5).join(', ')}${Object.keys(groupedProjects).length > 5 ? '...' : ''}`);
 
             // Sort groups by earliest next inspection date
             const sortedGroups = Object.entries(groupedProjects).sort((a, b) => {
@@ -653,6 +679,7 @@
 
             content.innerHTML = html;
             console.log('Rendering complete');
+            updateDebug('✓ Rendering complete!');
         }
 
         function createProjectGroup(projectName, projects) {
