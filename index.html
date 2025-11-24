@@ -623,10 +623,10 @@
                 return;
             }
 
-            // Group projects by Project # (projectNumber)
+            // Group projects by Project Name (projectName)
             const groupedProjects = {};
             filtered.forEach(project => {
-                const key = project.projectNumber || 'Ungrouped';
+                const key = project.projectName || 'Ungrouped';
                 if (!groupedProjects[key]) {
                     groupedProjects[key] = [];
                 }
@@ -647,7 +647,7 @@
             const html = `
                 <h2 class="section-title">Active Monitoring Projects (${filtered.length})</h2>
                 <div class="project-list">
-                    ${sortedGroups.map(([projectNumber, projects]) => createProjectGroup(projectNumber, projects)).join('')}
+                    ${sortedGroups.map(([projectName, projects]) => createProjectGroup(projectName, projects)).join('')}
                 </div>
             `;
 
@@ -655,14 +655,14 @@
             console.log('Rendering complete');
         }
 
-        function createProjectGroup(projectNumber, projects) {
+        function createProjectGroup(projectName, projects) {
             const parcelCount = projects.length;
             const countLabel = parcelCount > 1 ? `${parcelCount} parcels` : '1 parcel';
 
             return `
                 <div class="project-group">
                     <div class="group-header">
-                        <h3 class="group-name">${projectNumber}</h3>
+                        <h3 class="group-name">${projectName}</h3>
                         <span class="group-count">${countLabel}</span>
                     </div>
                     <div class="group-projects">
@@ -681,7 +681,7 @@
                 <div class="project-card ${statusClass}">
                     <div class="project-header">
                         <div>
-                            <div class="project-name">${project.projectName}</div>
+                            <div class="project-name">${project.projectNumber}</div>
                             <div class="project-id">${project.conservationArea}</div>
                         </div>
                         <span class="project-badge ${badgeClass}">${project.interval}</span>
