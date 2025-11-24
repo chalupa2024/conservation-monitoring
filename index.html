@@ -222,9 +222,9 @@
             margin-bottom: 15px;
         }
 
-        .project-name {
+        .project-card .project-name {
             font-weight: 600;
-            font-size: 1.1em;
+            font-size: 1em;
             color: #2d3748;
             margin-bottom: 5px;
         }
@@ -614,13 +614,13 @@
                 return;
             }
 
-            // Group projects by name
+            // Group projects by Project # (projectNumber)
             const groupedProjects = {};
             filtered.forEach(project => {
-                if (!groupedProjects[project.projectName]) {
-                    groupedProjects[project.projectName] = [];
+                if (!groupedProjects[project.projectNumber]) {
+                    groupedProjects[project.projectNumber] = [];
                 }
-                groupedProjects[project.projectName].push(project);
+                groupedProjects[project.projectNumber].push(project);
             });
 
             // Sort groups by earliest next inspection date
@@ -635,21 +635,21 @@
             const html = `
                 <h2 class="section-title">Active Monitoring Projects (${filtered.length})</h2>
                 <div class="project-list">
-                    ${sortedGroups.map(([projectName, projects]) => createProjectGroup(projectName, projects)).join('')}
+                    ${sortedGroups.map(([projectNumber, projects]) => createProjectGroup(projectNumber, projects)).join('')}
                 </div>
             `;
 
             content.innerHTML = html;
         }
 
-        function createProjectGroup(projectName, projects) {
-            const projectCount = projects.length;
-            const countLabel = projectCount > 1 ? `${projectCount} instances` : '1 instance';
+        function createProjectGroup(projectNumber, projects) {
+            const parcelCount = projects.length;
+            const countLabel = parcelCount > 1 ? `${parcelCount} parcels` : '1 parcel';
 
             return `
                 <div class="project-group">
                     <div class="group-header">
-                        <h3 class="group-name">${projectName}</h3>
+                        <h3 class="group-name">${projectNumber}</h3>
                         <span class="group-count">${countLabel}</span>
                     </div>
                     <div class="group-projects">
@@ -668,7 +668,8 @@
                 <div class="project-card ${statusClass}">
                     <div class="project-header">
                         <div>
-                            <div class="project-id">${project.projectNumber} • ${project.conservationArea}</div>
+                            <div class="project-name">${project.projectName}</div>
+                            <div class="project-id">${project.conservationArea}</div>
                         </div>
                         <span class="project-badge ${badgeClass}">${project.interval}</span>
                     </div>
