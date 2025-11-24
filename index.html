@@ -513,15 +513,17 @@
         }
 
         function processData(rows) {
+            console.log('Processing data, total rows:', rows.length);
+
             // Skip header row
             const dataRows = rows.slice(1);
-            
+
             allProjects = dataRows
                 .filter(row => row[10]) // Has a Report Interval
                 .map(row => {
                     const nextDate = row[13]; // 2025 Date Inspected
                     const lastDate = row[12]; // 2024 Date Inspected
-                    
+
                     return {
                         fundingSource: row[0] || '',
                         projectNumber: row[1] || '',
@@ -537,6 +539,9 @@
                     };
                 })
                 .filter(p => p.interval && p.interval !== 'Multi parcel grant');
+
+            console.log('Processed projects:', allProjects.length);
+            console.log('Sample project:', allProjects[0]);
 
             updateStats();
             renderProjects();
@@ -574,6 +579,8 @@
         }
 
         function renderProjects(searchTerm = '') {
+            console.log('Rendering projects, total:', allProjects.length);
+
             let filtered = allProjects;
 
             // Apply interval filter
@@ -601,6 +608,8 @@
                 return dateA - dateB;
             });
 
+            console.log('Filtered projects:', filtered.length);
+
             const content = document.getElementById('content');
 
             if (filtered.length === 0) {
@@ -617,11 +626,14 @@
             // Group projects by Project # (projectNumber)
             const groupedProjects = {};
             filtered.forEach(project => {
-                if (!groupedProjects[project.projectNumber]) {
-                    groupedProjects[project.projectNumber] = [];
+                const key = project.projectNumber || 'Ungrouped';
+                if (!groupedProjects[key]) {
+                    groupedProjects[key] = [];
                 }
-                groupedProjects[project.projectNumber].push(project);
+                groupedProjects[key].push(project);
             });
+
+            console.log('Number of groups:', Object.keys(groupedProjects).length);
 
             // Sort groups by earliest next inspection date
             const sortedGroups = Object.entries(groupedProjects).sort((a, b) => {
@@ -640,6 +652,7 @@
             `;
 
             content.innerHTML = html;
+            console.log('Rendering complete');
         }
 
         function createProjectGroup(projectNumber, projects) {
