@@ -147,7 +147,44 @@
 
         .project-list {
             display: grid;
-            gap: 15px;
+            gap: 25px;
+        }
+
+        .project-group {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .group-name {
+            font-size: 1.3em;
+            color: #2d3748;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .group-count {
+            background: #667eea;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .group-projects {
+            display: grid;
+            gap: 12px;
         }
 
         .project-card {
@@ -547,7 +584,7 @@
             // Apply search filter
             if (searchTerm) {
                 const search = searchTerm.toLowerCase();
-                filtered = filtered.filter(p => 
+                filtered = filtered.filter(p =>
                     p.projectName.toLowerCase().includes(search) ||
                     p.apn.toLowerCase().includes(search) ||
                     p.conservationArea.toLowerCase().includes(search) ||
@@ -565,7 +602,7 @@
             });
 
             const content = document.getElementById('content');
-            
+
             if (filtered.length === 0) {
                 content.innerHTML = `
                     <div class="empty-state">
@@ -577,14 +614,49 @@
                 return;
             }
 
+            // Group projects by name
+            const groupedProjects = {};
+            filtered.forEach(project => {
+                if (!groupedProjects[project.projectName]) {
+                    groupedProjects[project.projectName] = [];
+                }
+                groupedProjects[project.projectName].push(project);
+            });
+
+            // Sort groups by earliest next inspection date
+            const sortedGroups = Object.entries(groupedProjects).sort((a, b) => {
+                const dateA = parseDate(a[1][0].nextInspection);
+                const dateB = parseDate(b[1][0].nextInspection);
+                if (!dateA) return 1;
+                if (!dateB) return -1;
+                return dateA - dateB;
+            });
+
             const html = `
                 <h2 class="section-title">Active Monitoring Projects (${filtered.length})</h2>
                 <div class="project-list">
-                    ${filtered.map(project => createProjectCard(project)).join('')}
+                    ${sortedGroups.map(([projectName, projects]) => createProjectGroup(projectName, projects)).join('')}
                 </div>
             `;
 
             content.innerHTML = html;
+        }
+
+        function createProjectGroup(projectName, projects) {
+            const projectCount = projects.length;
+            const countLabel = projectCount > 1 ? `${projectCount} instances` : '1 instance';
+
+            return `
+                <div class="project-group">
+                    <div class="group-header">
+                        <h3 class="group-name">${projectName}</h3>
+                        <span class="group-count">${countLabel}</span>
+                    </div>
+                    <div class="group-projects">
+                        ${projects.map(project => createProjectCard(project)).join('')}
+                    </div>
+                </div>
+            `;
         }
 
         function createProjectCard(project) {
@@ -596,7 +668,6 @@
                 <div class="project-card ${statusClass}">
                     <div class="project-header">
                         <div>
-                            <div class="project-name">${project.projectName}</div>
                             <div class="project-id">${project.projectNumber} • ${project.conservationArea}</div>
                         </div>
                         <span class="project-badge ${badgeClass}">${project.interval}</span>
