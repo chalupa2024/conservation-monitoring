@@ -1,686 +1,1741 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conservation Monitoring Dashboard | Friends of Desert Mountains</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Altair Concierge | Global Immigration Services</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+  <style>
+    :root {
+      --bg-primary: #030308;
+      --bg-secondary: #0a0a12;
+      --bg-tertiary: #12121c;
+      --border: #1e1e2e;
+      --gray-200: #C8C8D0;
+      --gray-300: #8E8E9A;
+      --gray-400: #6B6B78;
+      --gray-500: #4A4A55;
+      --cyan: #5FD9FF;
+      --blue: #2F6BFF;
+      --purple: #5A35FF;
+      --white: #FFFFFF;
+      --success: #34D399;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+    html {
+      scroll-behavior: smooth;
+    }
 
-        header {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--gray-200);
+      line-height: 1.6;
+    }
 
-        h1 {
-            color: #2d3748;
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
+    /* Hero Section - Fixed Globe */
+    .hero {
+      position: relative;
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+    }
 
-        .subtitle {
-            color: #718096;
-            font-size: 1.1em;
-        }
+    #globe-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: transparent;
+    }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+    /* Prevent any default white elements */
+    canvas, div, section { background-color: transparent; }
+    .hero canvas { background: #030308; }
 
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            border-left: 5px solid;
-        }
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 0%, rgba(3, 3, 8, 0.25) 50%, rgba(3, 3, 8, 0.85) 100%);
+    }
 
-        .stat-card.overdue { border-color: #f56565; }
-        .stat-card.upcoming { border-color: #ed8936; }
-        .stat-card.current { border-color: #48bb78; }
-        .stat-card.total { border-color: #4299e1; }
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1.25rem 2.5rem;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(3, 3, 8, 0);
+      transition: background 0.3s;
+    }
 
-        .stat-number {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
+    nav.scrolled {
+      background: rgba(3, 3, 8, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
 
-        .stat-label {
-            color: #718096;
-            font-size: 0.95em;
-        }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+      text-decoration: none;
+    }
 
-        .filters {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
+    .logo-mark { width: 44px; height: 44px; }
+    .logo-text {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      gap: 0.35rem;
+    }
 
-        .filter-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
+    .logo-altair {
+      font-weight: 600;
+      font-size: 1.5rem;
+      color: #fff;
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
 
-        .filter-btn {
-            padding: 10px 20px;
-            border: 2px solid #e2e8f0;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.95em;
-            transition: all 0.3s;
-        }
+    .logo-concierge {
+      font-weight: 500;
+      font-size: 0.75rem;
+      background: linear-gradient(90deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
-        .filter-btn:hover {
-            border-color: #667eea;
-            color: #667eea;
-        }
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      align-items: center;
+    }
 
-        .filter-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
+    .nav-links a {
+      text-decoration: none;
+      color: rgba(255,255,255,0.7);
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
 
-        .search-box {
-            flex: 1;
-            min-width: 250px;
-        }
+    .nav-links a:hover { color: #fff; }
 
-        .search-box input {
-            width: 100%;
-            padding: 12px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1em;
-        }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.7rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: all 0.25s;
+      cursor: pointer;
+      border: none;
+    }
 
-        .search-box input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+      color: #fff;
+    }
 
-        .main-content {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-        }
+    .btn-primary:hover {
+      box-shadow: 0 0 40px rgba(47, 107, 255, 0.5), 0 0 80px rgba(90, 53, 255, 0.3);
+      transform: translateY(-2px);
+    }
 
-        .section-title {
-            font-size: 1.5em;
-            color: #2d3748;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-        }
+    .btn-ghost {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.8);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+    }
 
-        .project-list {
-            display: grid;
-            gap: 15px;
-        }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.3);
+      color: #fff;
+    }
 
-        .project-card {
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 20px;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
+    .hero-content {
+      position: absolute;
+      bottom: 12%;
+      left: 5%;
+      z-index: 10;
+      max-width: 600px;
+    }
 
-        .project-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
-        }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(95, 217, 255, 0.1);
+      border: 1px solid rgba(95, 217, 255, 0.25);
+      color: var(--cyan);
+      padding: 0.5rem 1.25rem;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
+    }
 
-        .project-card.overdue {
-            border-left: 6px solid #f56565;
-            background: #fff5f5;
-        }
+    .hero-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--cyan);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
 
-        .project-card.due-soon {
-            border-left: 6px solid #ed8936;
-            background: #fffaf0;
-        }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
 
-        .project-card.on-track {
-            border-left: 6px solid #48bb78;
-            background: #f0fff4;
-        }
+    .hero-content h1 {
+      font-size: clamp(3rem, 6vw, 5rem);
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 1.25rem;
+    }
 
-        .project-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 15px;
-        }
+    .gradient-text {
+      background: linear-gradient(135deg, #B8FFF7 0%, var(--cyan) 30%, var(--blue) 70%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-        .project-name {
-            font-weight: 600;
-            font-size: 1.1em;
-            color: #2d3748;
-            margin-bottom: 5px;
-        }
+    .hero-content p {
+      font-size: 1.2rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 2rem;
+      line-height: 1.7;
+      max-width: 480px;
+    }
 
-        .project-id {
-            color: #718096;
-            font-size: 0.9em;
-        }
+    .hero-buttons { display: flex; gap: 1rem; }
 
-        .project-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-        }
+    .hero-stats {
+      position: absolute;
+      bottom: 12%;
+      right: 5%;
+      z-index: 10;
+      display: flex;
+      gap: 3rem;
+    }
 
-        .badge-quarterly {
-            background: #bee3f8;
-            color: #2c5282;
-        }
+    .stat { text-align: right; }
 
-        .badge-biannual {
-            background: #feebc8;
-            color: #7c2d12;
-        }
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
 
-        .badge-annual {
-            background: #c6f6d5;
-            color: #22543d;
-        }
+    .stat-number span {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-        .project-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e2e8f0;
-        }
+    .stat-label {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
 
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-        }
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
 
-        .detail-label {
-            font-size: 0.85em;
-            color: #718096;
-            margin-bottom: 3px;
-        }
+    .scroll-indicator:hover { color: var(--cyan); }
 
-        .detail-value {
-            font-weight: 600;
-            color: #2d3748;
-        }
+    .scroll-indicator::after {
+      content: '';
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, rgba(95, 217, 255, 0.5), transparent);
+      animation: scrollPulse 2s infinite;
+    }
 
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; height: 40px; }
+      50% { opacity: 1; height: 50px; }
+    }
 
-        .status-overdue { background: #f56565; }
-        .status-upcoming { background: #ed8936; }
-        .status-good { background: #48bb78; }
+    /* Main Content Sections */
+    .content {
+      position: relative;
+      z-index: 20;
+      background: var(--bg-primary);
+    }
 
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: #718096;
-        }
+    /* Clients */
+    .clients {
+      padding: 4rem 2rem;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
 
-        .error {
-            background: #fff5f5;
-            border: 2px solid #fc8181;
-            padding: 20px;
-            border-radius: 10px;
-            color: #742a2a;
-        }
+    .clients-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+    }
 
-        .timeline-section {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #e2e8f0;
-        }
+    .clients-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--gray-400);
+      margin-bottom: 1.5rem;
+    }
 
-        .timeline {
-            position: relative;
-            padding-left: 30px;
-        }
+    .clients-logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3.5rem;
+      flex-wrap: wrap;
+    }
 
-        .timeline-item {
-            position: relative;
-            padding-bottom: 30px;
-        }
+    .client-logo {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--gray-500);
+      transition: color 0.2s;
+    }
 
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -23px;
-            top: 5px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #667eea;
-        }
+    .client-logo:hover { color: var(--gray-300); }
 
-        .timeline-item::after {
-            content: '';
-            position: absolute;
-            left: -18px;
-            top: 17px;
-            width: 2px;
-            height: calc(100% - 12px);
-            background: #e2e8f0;
-        }
+    /* Section styles */
+    section {
+      padding: 6rem 2rem;
+    }
 
-        .timeline-item:last-child::after {
-            display: none;
-        }
+    .section-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-        .timeline-date {
-            font-weight: 600;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
+    .section-header {
+      margin-bottom: 3rem;
+    }
 
-        .timeline-projects {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+    .section-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      background: linear-gradient(90deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
 
-        .timeline-project {
-            padding: 8px 15px;
-            background: #f7fafc;
-            border-radius: 6px;
-            font-size: 0.9em;
-            border-left: 3px solid #667eea;
-        }
+    .section-header h2 {
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
 
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .filters {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .filter-group {
-                flex-direction: column;
-            }
-        }
+    .section-header p {
+      font-size: 1.1rem;
+      color: var(--gray-300);
+      max-width: 500px;
+    }
 
-        .refresh-btn {
-            padding: 12px 24px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
+    /* Services */
+    .services {
+      background: var(--bg-primary);
+    }
 
-        .refresh-btn:hover {
-            background: #5a67d8;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #718096;
-        }
+    .service-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .empty-state-icon {
-            font-size: 4em;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-    </style>
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--blue), var(--purple));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .service-card:hover {
+      border-color: var(--gray-500);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .service-card:hover::before { opacity: 1; }
+
+    .service-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, rgba(95, 217, 255, 0.15), rgba(47, 107, 255, 0.15));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      font-size: 1.25rem;
+    }
+
+    .service-card h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+
+    .service-card p {
+      font-size: 0.95rem;
+      color: var(--gray-300);
+      line-height: 1.6;
+    }
+
+    /* Process */
+    .process {
+      background: var(--bg-secondary);
+    }
+
+    .process-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .process-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s;
+    }
+
+    .process-card:hover {
+      border-color: var(--cyan);
+    }
+
+    .process-number {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+
+    .process-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+
+    .process-card p {
+      font-size: 0.9rem;
+      color: var(--gray-400);
+      line-height: 1.6;
+    }
+
+    /* Testimonials */
+    .testimonials {
+      background: var(--bg-primary);
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .testimonial-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: border-color 0.3s;
+    }
+
+    .testimonial-card:hover { border-color: var(--gray-500); }
+
+    .testimonial-card.featured {
+      background: linear-gradient(135deg, rgba(95, 217, 255, 0.05), rgba(47, 107, 255, 0.05));
+      border-color: rgba(95, 217, 255, 0.25);
+    }
+
+    .testimonial-text {
+      font-size: 1rem;
+      color: var(--gray-200);
+      margin-bottom: 1.5rem;
+      line-height: 1.7;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+    }
+
+    .testimonial-avatar {
+      width: 44px;
+      height: 44px;
+      background: var(--bg-tertiary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--gray-300);
+    }
+
+    .testimonial-card.featured .testimonial-avatar {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: var(--white);
+    }
+
+    .testimonial-info h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 0.15rem;
+    }
+
+    .testimonial-info span {
+      font-size: 0.85rem;
+      color: var(--gray-400);
+    }
+
+    /* CTA */
+    .cta {
+      background: var(--bg-secondary);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 50% 50% at 50% 100%, rgba(47, 107, 255, 0.15), transparent),
+        radial-gradient(ellipse 40% 40% at 80% 80%, rgba(90, 53, 255, 0.1), transparent);
+      pointer-events: none;
+    }
+
+    .cta-container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta h2 {
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      color: var(--white);
+      margin-bottom: 0.75rem;
+    }
+
+    .cta > .section-container > p {
+      font-size: 1.1rem;
+      color: var(--gray-300);
+      margin-bottom: 2.5rem;
+    }
+
+    .cta-form {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: left;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-group.full { grid-column: span 2; }
+
+    .form-group label {
+      font-weight: 500;
+      font-size: 0.85rem;
+      color: var(--gray-300);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 0.8rem 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder { color: var(--gray-500); }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(95, 217, 255, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .cta-form .btn {
+      width: 100%;
+      justify-content: center;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+
+    /* Multi-step form styles */
+    .form-step { display: none; }
+    .form-step.active { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-step-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-step-label {
+      font-size: 0.8rem;
+      color: var(--gray-400);
+      white-space: nowrap;
+    }
+
+    .form-progress {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .form-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--blue), var(--purple));
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .form-question {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 1.25rem;
+    }
+
+    .form-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-option {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+      padding: 1rem 1.15rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .form-option:hover {
+      border-color: var(--gray-500);
+      background: var(--bg-tertiary);
+    }
+
+    .form-option.selected {
+      border-color: var(--cyan);
+      background: rgba(95, 217, 255, 0.05);
+    }
+
+    .form-option-radio {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--gray-500);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .form-option.selected .form-option-radio {
+      border-color: var(--cyan);
+    }
+
+    .form-option.selected .form-option-radio::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--cyan);
+      border-radius: 50%;
+    }
+
+    .form-option-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .form-option-text strong {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--white);
+    }
+
+    .form-option-text span {
+      font-size: 0.8rem;
+      color: var(--gray-400);
+    }
+
+    .form-nav-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .form-nav-row .btn {
+      width: auto;
+      margin-top: 0;
+    }
+
+    .form-nav-row .btn-ghost {
+      padding: 0.85rem 1.25rem;
+    }
+
+    .form-nav-row .btn-primary {
+      flex: 1;
+      max-width: 200px;
+    }
+
+    .form-success {
+      text-align: center;
+      padding: 2rem 0;
+    }
+
+    .form-success-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(95, 217, 255, 0.2));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-size: 1.5rem;
+      color: var(--success);
+    }
+
+    .form-success h3 {
+      font-size: 1.25rem;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-success p {
+      color: var(--gray-300);
+      font-size: 0.95rem;
+    }
+
+    /* Footer */
+    footer {
+      padding: 4rem 2rem 2rem;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+      padding-bottom: 3rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .footer-brand p {
+      color: var(--gray-400);
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      max-width: 280px;
+      line-height: 1.6;
+    }
+
+    .footer-links h4 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+      color: var(--gray-300);
+      font-weight: 600;
+    }
+
+    .footer-links a {
+      display: block;
+      color: var(--gray-400);
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 0.6rem;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--cyan); }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--gray-500);
+    }
+
+    .footer-legal a {
+      color: var(--gray-500);
+      text-decoration: none;
+      margin-left: 1.5rem;
+      transition: color 0.2s;
+    }
+
+    .footer-legal a:hover { color: var(--gray-300); }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero-stats {
+        bottom: auto;
+        top: 50%;
+        right: 5%;
+        transform: translateY(-50%);
+        flex-direction: column;
+        gap: 2rem;
+      }
+      .services-grid { grid-template-columns: repeat(2, 1fr); }
+      .process-grid { grid-template-columns: repeat(2, 1fr); }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links a:not(.btn) { display: none; }
+      .hero-content { left: 1.5rem; right: 1.5rem; bottom: 18%; }
+      .hero-content h1 { font-size: 2.5rem; }
+      .hero-content p { font-size: 1rem; }
+      .hero-stats { display: none; }
+      .scroll-indicator { bottom: 1.5rem; }
+      section { padding: 4rem 1.5rem; }
+      .services-grid, .process-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: span 1; }
+      .footer-top { grid-template-columns: 1fr; gap: 2rem; }
+      .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+      .footer-legal a { margin: 0 0.75rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🏔️ Conservation Monitoring Dashboard</h1>
-            <p class="subtitle">Friends of Desert Mountains - Riverside County</p>
-        </header>
+  <!-- Hero Section with Globe -->
+  <section class="hero">
+    <canvas id="globe-canvas"></canvas>
+    <div class="hero-overlay"></div>
 
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card overdue">
-                <div class="stat-number" id="overdueCount">-</div>
-                <div class="stat-label">Overdue Inspections</div>
-            </div>
-            <div class="stat-card upcoming">
-                <div class="stat-number" id="upcomingCount">-</div>
-                <div class="stat-label">Due Next 60 Days</div>
-            </div>
-            <div class="stat-card current">
-                <div class="stat-number" id="completedCount">-</div>
-                <div class="stat-label">Completed This Year</div>
-            </div>
-            <div class="stat-card total">
-                <div class="stat-number" id="totalCount">-</div>
-                <div class="stat-label">Total Active Projects</div>
-            </div>
+    <nav id="navbar">
+      <a href="#" class="logo">
+        <svg class="logo-mark" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#2F6BFF"/>
+              <stop offset="0.55" stop-color="#2752FF"/>
+              <stop offset="1" stop-color="#5A35FF"/>
+            </linearGradient>
+            <linearGradient id="beamGrad" x1="512" y1="290" x2="512" y2="860" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#B8FFF7"/>
+              <stop offset="0.55" stop-color="#5FD9FF" stop-opacity="0.95"/>
+              <stop offset="1" stop-color="#7A4DFF" stop-opacity="0.95"/>
+            </linearGradient>
+            <linearGradient id="sideBeamGrad" x1="512" y1="300" x2="512" y2="900" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#A7FFF1" stop-opacity="0.55"/>
+              <stop offset="1" stop-color="#6A45FF" stop-opacity="0.55"/>
+            </linearGradient>
+            <clipPath id="clip">
+              <rect x="160" y="160" width="704" height="704" rx="160"/>
+            </clipPath>
+          </defs>
+          <g clip-path="url(#clip)">
+            <rect x="160" y="160" width="704" height="704" rx="160" fill="url(#bgGrad)"/>
+            <path d="M512 304 L230 860 L512 860 Z" fill="url(#sideBeamGrad)"/>
+            <path d="M512 304 L794 860 L512 860 Z" fill="url(#sideBeamGrad)"/>
+            <path d="M512 304 L400 860 L624 860 Z" fill="url(#beamGrad)"/>
+            <path d="M512 250 C526 280 548 302 578 312 C548 322 526 346 512 378 C498 346 476 322 446 312 C476 302 498 280 512 250 Z" fill="#FFFFFF"/>
+          </g>
+        </svg>
+        <div class="logo-text">
+          <span class="logo-altair">Altair</span>
+          <span class="logo-concierge">Concierge</span>
         </div>
+      </a>
+      <div class="nav-links">
+        <a href="#services">Services</a>
+        <a href="#process">Process</a>
+        <a href="#contact">Contact</a>
+        <a href="#contact" class="btn btn-primary">Get Started</a>
+      </div>
+    </nav>
 
-        <div class="filters">
-            <div class="filter-group">
-                <button class="filter-btn active" data-interval="all">All Projects</button>
-                <button class="filter-btn" data-interval="Quarterly">Quarterly</button>
-                <button class="filter-btn" data-interval="Biannual">Biannual</button>
-                <button class="filter-btn" data-interval="Annual">Annual</button>
-            </div>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search by project name, APN, or conservation area...">
-            </div>
-            <button class="refresh-btn" onclick="loadData()">🔄 Refresh Data</button>
-        </div>
-
-        <div class="main-content">
-            <div id="content">
-                <div class="loading">
-                    <h3>Loading monitoring data...</h3>
-                    <p>Connecting to Google Sheets</p>
-                </div>
-            </div>
-        </div>
+    <div class="hero-content">
+      <div class="hero-badge">Now Accepting Extraordinary People</div>
+      <h1>Immigration.<br/><span class="gradient-text">Handled.</span></h1>
+      <p>Expert-guided visa services for founders, engineers, and operators moving to the United States.</p>
+      <div class="hero-buttons">
+        <a href="#contact" class="btn btn-primary">Get Free Evaluation →</a>
+        <a href="#process" class="btn btn-ghost">How it works</a>
+      </div>
     </div>
 
-    <script>
-        // Configuration
-        const SPREADSHEET_ID = '1fsJGE7QBfrNxx8x-Ccb6QzluCwltTiIVwREcGIYS6ls';
-        const API_KEY = 'AIzaSyAsAejeigE-UB1htQO3uaxkF3MWG42eiJA';
-        const SHEET_NAME = '2025'; // Adjust if your sheet has a different name
-        
-        let allProjects = [];
-        let currentFilter = 'all';
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-number">98<span>%</span></div>
+        <div class="stat-label">Approval Rate</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">14<span>d</span></div>
+        <div class="stat-label">Avg Prep Time</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">1000<span>+</span></div>
+        <div class="stat-label">Approvals</div>
+      </div>
+    </div>
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            setupFilters();
-            setupSearch();
-            loadData();
+    <a href="#clients" class="scroll-indicator">Explore</a>
+  </section>
+
+  <!-- Main Content -->
+  <div class="content">
+    <!-- Clients -->
+    <section class="clients" id="clients">
+      <div class="clients-container">
+        <div class="clients-label">Trusted by teams at</div>
+        <div class="clients-logos">
+          <span class="client-logo">Notion</span>
+          <span class="client-logo">Ramp</span>
+          <span class="client-logo">Clay</span>
+          <span class="client-logo">Baseten</span>
+          <span class="client-logo">Mintlify</span>
+          <span class="client-logo">Cognition</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services -->
+    <section class="services" id="services">
+      <div class="section-container">
+        <div class="section-header">
+          <div class="section-label">Services</div>
+          <h2>Every visa type. One team.</h2>
+          <p>From work visas to green cards, we handle the full spectrum of employment-based immigration.</p>
+        </div>
+        <div class="services-grid">
+          <div class="service-card">
+            <div class="service-icon">⚡</div>
+            <h3>O-1A Visa</h3>
+            <p>For founders, researchers, and technical leaders with extraordinary ability in their field.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">◆</div>
+            <h3>H-1B Visa</h3>
+            <p>For professionals in specialty occupations requiring a bachelor's degree or equivalent.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">▲</div>
+            <h3>TN Visa</h3>
+            <p>For Canadian and Mexican professionals under the USMCA agreement.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">●</div>
+            <h3>L-1 Visa</h3>
+            <p>For intracompany transfers in managerial, executive, or specialized knowledge roles.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">★</div>
+            <h3>EB-1A / EB-2 NIW</h3>
+            <p>Green card pathways for exceptional talent and those serving the national interest.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">◇</div>
+            <h3>E-2 / E-3</h3>
+            <p>For treaty investors and Australian specialty occupation workers.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Process -->
+    <section class="process" id="process">
+      <div class="section-container">
+        <div class="section-header">
+          <div class="section-label">Process</div>
+          <h2>Four steps to approval.</h2>
+          <p>A streamlined process designed to minimize your time and maximize your chances of success.</p>
+        </div>
+        <div class="process-grid">
+          <div class="process-card">
+            <div class="process-number">01</div>
+            <h3>Free Evaluation</h3>
+            <p>We assess your profile and recommend the optimal visa pathway for your situation.</p>
+          </div>
+          <div class="process-card">
+            <div class="process-number">02</div>
+            <h3>Strategy & Prep</h3>
+            <p>We build your case with the strongest possible evidence, handling all documentation.</p>
+          </div>
+          <div class="process-card">
+            <div class="process-number">03</div>
+            <h3>Filing & Tracking</h3>
+            <p>We submit your petition and monitor progress with real-time status updates.</p>
+          </div>
+          <div class="process-card">
+            <div class="process-number">04</div>
+            <h3>Ongoing Support</h3>
+            <p>We're here for renewals, status changes, and any questions along the way.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials" id="testimonials">
+      <div class="section-container">
+        <div class="section-header">
+          <div class="section-label">Success Stories</div>
+          <h2>From our clients.</h2>
+        </div>
+        <div class="testimonials-grid">
+          <div class="testimonial-card featured">
+            <p class="testimonial-text">"Altair made my O-1A process incredibly smooth. They knew exactly what USCIS would need and helped me present my work in the best possible light. Approved in just 3 weeks."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">SK</div>
+              <div class="testimonial-info">
+                <h4>Sarah Kim</h4>
+                <span>AI Researcher → O-1A</span>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial-card">
+            <p class="testimonial-text">"After a frustrating experience elsewhere, Altair was refreshing. Clear communication, realistic timelines, and they actually delivered on everything they promised."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">MR</div>
+              <div class="testimonial-info">
+                <h4>Miguel Rodriguez</h4>
+                <span>Engineer → H-1B</span>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial-card">
+            <p class="testimonial-text">"The team's expertise gave me confidence throughout the entire process. They anticipated issues before they arose and always had solutions ready."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">AP</div>
+              <div class="testimonial-info">
+                <h4>Aisha Patel</h4>
+                <span>Founder → EB-1A</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" id="contact">
+      <div class="cta-bg"></div>
+      <div class="section-container">
+        <div class="cta-container">
+          <h2>Ready to get started?</h2>
+          <p>Answer a few questions to get a personalized evaluation and clear next steps.</p>
+          <div class="cta-form">
+            <div class="form-step active" data-form-step="1">
+              <div class="form-step-header">
+                <span class="form-step-label">Step 1 of 3</span>
+                <div class="form-progress"><div class="form-progress-fill" style="width: 33%"></div></div>
+              </div>
+              <h3 class="form-question">Who are you?</h3>
+              <div class="form-options">
+                <div class="form-option" data-value="candidate">
+                  <div class="form-option-radio"></div>
+                  <div class="form-option-text">
+                    <strong>I'm a candidate</strong>
+                    <span>Applying for a visa for myself</span>
+                  </div>
+                </div>
+                <div class="form-option" data-value="employer">
+                  <div class="form-option-radio"></div>
+                  <div class="form-option-text">
+                    <strong>I'm an employer</strong>
+                    <span>Sponsoring a visa for an employee</span>
+                  </div>
+                </div>
+                <div class="form-option" data-value="founder">
+                  <div class="form-option-radio"></div>
+                  <div class="form-option-text">
+                    <strong>I'm a founder</strong>
+                    <span>Starting or running a company</span>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-primary form-next-btn" disabled>Continue →</button>
+            </div>
+            <div class="form-step" data-form-step="2">
+              <div class="form-step-header">
+                <span class="form-step-label">Step 2 of 3</span>
+                <div class="form-progress"><div class="form-progress-fill" style="width: 66%"></div></div>
+              </div>
+              <h3 class="form-question">What's your goal?</h3>
+              <div class="form-options">
+                <div class="form-option" data-value="work-visa">
+                  <div class="form-option-radio"></div>
+                  <div class="form-option-text">
+                    <strong>Get a work visa</strong>
+                    <span>H-1B, O-1A, TN, L-1</span>
+                  </div>
+                </div>
+                <div class="form-option" data-value="green-card">
+                  <div class="form-option-radio"></div>
+                  <div class="form-option-text">
+                    <strong>Get a green card</strong>
+                    <span>EB-1A, EB-2 NIW, or sponsored</span>
+                  </div>
+                </div>
+                <div class="form-option" data-value="extend">
+                  <div class="form-option-radio"></div>
+                  <div class="form-option-text">
+                    <strong>Extend or transfer</strong>
+                    <span>Renew status or change employers</span>
+                  </div>
+                </div>
+                <div class="form-option" data-value="not-sure">
+                  <div class="form-option-radio"></div>
+                  <div class="form-option-text">
+                    <strong>Not sure yet</strong>
+                    <span>Help me find the best path</span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-nav-row">
+                <button class="btn btn-ghost form-back-btn">← Back</button>
+                <button class="btn btn-primary form-next-btn" disabled>Continue →</button>
+              </div>
+            </div>
+            <div class="form-step" data-form-step="3">
+              <div class="form-step-header">
+                <span class="form-step-label">Step 3 of 3</span>
+                <div class="form-progress"><div class="form-progress-fill" style="width: 100%"></div></div>
+              </div>
+              <h3 class="form-question">How can we reach you?</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>First name</label>
+                  <input type="text" id="ctaFirstName" placeholder="Jane">
+                </div>
+                <div class="form-group">
+                  <label>Last name</label>
+                  <input type="text" id="ctaLastName" placeholder="Smith">
+                </div>
+              </div>
+              <div class="form-group full">
+                <label>Email</label>
+                <input type="email" id="ctaEmail" placeholder="jane@company.com">
+              </div>
+              <div class="form-nav-row">
+                <button class="btn btn-ghost form-back-btn">← Back</button>
+                <button class="btn btn-primary form-submit-btn" disabled>Get My Evaluation →</button>
+              </div>
+            </div>
+            <div class="form-step" data-form-step="success">
+              <div class="form-success">
+                <div class="form-success-icon">✓</div>
+                <h3>You're all set!</h3>
+                <p>Our team will review your profile and send you a personalized evaluation within 24 hours.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a href="#" class="logo">
+              <svg class="logo-mark" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="bgGrad2" x1="0" y1="0" x2="0" y2="1024" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#2F6BFF"/>
+                    <stop offset="0.55" stop-color="#2752FF"/>
+                    <stop offset="1" stop-color="#5A35FF"/>
+                  </linearGradient>
+                  <linearGradient id="beamGrad2" x1="512" y1="290" x2="512" y2="860" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#B8FFF7"/>
+                    <stop offset="0.55" stop-color="#5FD9FF" stop-opacity="0.95"/>
+                    <stop offset="1" stop-color="#7A4DFF" stop-opacity="0.95"/>
+                  </linearGradient>
+                  <linearGradient id="sideBeamGrad2" x1="512" y1="300" x2="512" y2="900" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#A7FFF1" stop-opacity="0.55"/>
+                    <stop offset="1" stop-color="#6A45FF" stop-opacity="0.55"/>
+                  </linearGradient>
+                  <clipPath id="clip2">
+                    <rect x="160" y="160" width="704" height="704" rx="160"/>
+                  </clipPath>
+                </defs>
+                <g clip-path="url(#clip2)">
+                  <rect x="160" y="160" width="704" height="704" rx="160" fill="url(#bgGrad2)"/>
+                  <path d="M512 304 L230 860 L512 860 Z" fill="url(#sideBeamGrad2)"/>
+                  <path d="M512 304 L794 860 L512 860 Z" fill="url(#sideBeamGrad2)"/>
+                  <path d="M512 304 L400 860 L624 860 Z" fill="url(#beamGrad2)"/>
+                  <path d="M512 250 C526 280 548 302 578 312 C548 322 526 346 512 378 C498 346 476 322 446 312 C476 302 498 280 512 250 Z" fill="#FFFFFF"/>
+                </g>
+              </svg>
+              <div class="logo-text">
+                <span class="logo-altair">Altair</span>
+                <span class="logo-concierge">Concierge</span>
+              </div>
+            </a>
+            <p>Expert-guided immigration for founders, engineers, and operators building in the United States.</p>
+          </div>
+          <div class="footer-links">
+            <h4>Services</h4>
+            <a href="#">O-1A Visa</a>
+            <a href="#">H-1B Visa</a>
+            <a href="#">TN Visa</a>
+            <a href="#">Green Cards</a>
+          </div>
+          <div class="footer-links">
+            <h4>Company</h4>
+            <a href="#">About</a>
+            <a href="#">Team</a>
+            <a href="#">Blog</a>
+            <a href="#">Careers</a>
+          </div>
+          <div class="footer-links">
+            <h4>Contact</h4>
+            <a href="#">hello@altairconcierge.com</a>
+            <a href="#">Schedule a call</a>
+            <a href="#">Twitter</a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>© 2026 Altair Concierge</p>
+          <div class="footer-legal">
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Disclaimer</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+
+    // Globe initialization
+    async function init() {
+      const canvas = document.getElementById('globe-canvas');
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 2.2;
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // Stars
+      const starsGeometry = new THREE.BufferGeometry();
+      const starCount = 3000;
+      const positions = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 100;
+        positions[i + 1] = (Math.random() - 0.5) * 100;
+        positions[i + 2] = (Math.random() - 0.5) * 100;
+      }
+      starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const stars = new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.8 }));
+      scene.add(stars);
+
+      // Fetch world topology data
+      let countries;
+      try {
+        const response = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+        const world = await response.json();
+        countries = topojson.feature(world, world.objects.countries);
+      } catch (e) {
+        console.log('Could not load world data');
+        countries = null;
+      }
+
+      // Create Earth texture
+      const textureCanvas = document.createElement('canvas');
+      textureCanvas.width = 2048;
+      textureCanvas.height = 1024;
+      const ctx = textureCanvas.getContext('2d');
+
+      ctx.fillStyle = '#050812';
+      ctx.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
+
+      if (countries) {
+        ctx.fillStyle = '#0f1a35';
+        ctx.strokeStyle = '#1e3a6e';
+        ctx.lineWidth = 0.5;
+
+        countries.features.forEach(feature => {
+          const geometry = feature.geometry;
+          if (!geometry) return;
+
+          const drawPolygon = (coords) => {
+            ctx.beginPath();
+            coords.forEach((ring) => {
+              ring.forEach((point, i) => {
+                const x = (point[0] + 180) * (textureCanvas.width / 360);
+                const y = (90 - point[1]) * (textureCanvas.height / 180);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+              });
+              ctx.closePath();
+            });
+            ctx.fill();
+            ctx.stroke();
+          };
+
+          if (geometry.type === 'Polygon') {
+            drawPolygon(geometry.coordinates);
+          } else if (geometry.type === 'MultiPolygon') {
+            geometry.coordinates.forEach(polygon => drawPolygon(polygon));
+          }
         });
 
-        function setupFilters() {
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentFilter = this.dataset.interval;
-                    renderProjects();
-                });
+        ctx.shadowColor = '#2F6BFF';
+        ctx.shadowBlur = 3;
+        ctx.strokeStyle = '#2F6BFF';
+        ctx.lineWidth = 1;
+
+        countries.features.forEach(feature => {
+          const geometry = feature.geometry;
+          if (!geometry) return;
+
+          const strokePolygon = (coords) => {
+            ctx.beginPath();
+            coords.forEach(ring => {
+              ring.forEach((point, i) => {
+                const x = (point[0] + 180) * (textureCanvas.width / 360);
+                const y = (90 - point[1]) * (textureCanvas.height / 180);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+              });
             });
+            ctx.stroke();
+          };
+
+          if (geometry.type === 'Polygon') {
+            strokePolygon(geometry.coordinates);
+          } else if (geometry.type === 'MultiPolygon') {
+            geometry.coordinates.forEach(polygon => strokePolygon(polygon));
+          }
+        });
+      }
+
+      const earthTexture = new THREE.CanvasTexture(textureCanvas);
+
+      // Globe
+      const globeGeometry = new THREE.SphereGeometry(1, 64, 64);
+      const globeMaterial = new THREE.MeshPhongMaterial({
+        map: earthTexture,
+        bumpScale: 0.02,
+        specular: new THREE.Color(0x333333),
+        shininess: 5
+      });
+      const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+      scene.add(globe);
+
+      // Lighting
+      scene.add(new THREE.AmbientLight(0x404040, 1));
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      directionalLight.position.set(5, 3, 5);
+      scene.add(directionalLight);
+
+      // Atmosphere
+      const glowGeometry = new THREE.SphereGeometry(1.12, 64, 64);
+      const glowMaterial = new THREE.ShaderMaterial({
+        uniforms: { glowColor: { value: new THREE.Color(0x5FD9FF) } },
+        vertexShader: `
+          varying vec3 vNormal;
+          void main() {
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 glowColor;
+          varying vec3 vNormal;
+          void main() {
+            float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.0);
+            gl_FragColor = vec4(glowColor, intensity * 0.5);
+          }
+        `,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        transparent: true
+      });
+      scene.add(new THREE.Mesh(glowGeometry, glowMaterial));
+
+      // Cities
+      const cities = [
+        { lat: 37.77, lon: -122.42, isUS: true },
+        { lat: 40.71, lon: -74.01, isUS: true },
+        { lat: 34.05, lon: -118.24, isUS: true },
+        { lat: 25.76, lon: -80.19, isUS: true },
+        { lat: 30.27, lon: -97.74, isUS: true },
+        { lat: 47.61, lon: -122.33, isUS: true },
+        { lat: 51.51, lon: -0.13, isUS: false },
+        { lat: 48.86, lon: 2.35, isUS: false },
+        { lat: 52.52, lon: 13.41, isUS: false },
+        { lat: 35.68, lon: 139.69, isUS: false },
+        { lat: 1.35, lon: 103.82, isUS: false },
+        { lat: -33.87, lon: 151.21, isUS: false },
+        { lat: 19.08, lon: 72.88, isUS: false },
+        { lat: 25.20, lon: 55.27, isUS: false },
+        { lat: 43.65, lon: -79.38, isUS: false },
+        { lat: -23.55, lon: -46.63, isUS: false },
+        { lat: 37.57, lon: 126.98, isUS: false },
+        { lat: 32.09, lon: 34.78, isUS: false },
+        { lat: 39.90, lon: 116.41, isUS: false },
+        { lat: 19.43, lon: -99.13, isUS: false },
+        { lat: 52.37, lon: 4.90, isUS: false },
+        { lat: 12.97, lon: 77.59, isUS: false },
+        { lat: 22.32, lon: 114.17, isUS: false },
+        { lat: 6.52, lon: 3.38, isUS: false },
+      ];
+
+      function latLonToVector3(lat, lon, radius) {
+        const phi = (90 - lat) * (Math.PI / 180);
+        const theta = (lon + 180) * (Math.PI / 180);
+        return new THREE.Vector3(
+          -radius * Math.sin(phi) * Math.cos(theta),
+          radius * Math.cos(phi),
+          radius * Math.sin(phi) * Math.sin(theta)
+        );
+      }
+
+      // Points
+      const pointsGroup = new THREE.Group();
+      cities.forEach(city => {
+        const pos = latLonToVector3(city.lat, city.lon, 1.01);
+        const point = new THREE.Mesh(
+          new THREE.SphereGeometry(city.isUS ? 0.018 : 0.01, 16, 16),
+          new THREE.MeshBasicMaterial({ color: city.isUS ? 0x5FD9FF : 0x8B5CF6 })
+        );
+        point.position.copy(pos);
+        pointsGroup.add(point);
+
+        if (city.isUS) {
+          const ring = new THREE.Mesh(
+            new THREE.RingGeometry(0.025, 0.035, 32),
+            new THREE.MeshBasicMaterial({ color: 0x5FD9FF, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+          );
+          ring.position.copy(pos);
+          ring.lookAt(0, 0, 0);
+          pointsGroup.add(ring);
         }
+      });
+      scene.add(pointsGroup);
 
-        function setupSearch() {
-            document.getElementById('searchInput').addEventListener('input', function(e) {
-                renderProjects(e.target.value);
-            });
+      // Arcs
+      const usCities = cities.filter(c => c.isUS);
+      const intlCities = cities.filter(c => !c.isUS);
+      const arcsGroup = new THREE.Group();
+
+      intlCities.forEach((intlCity, i) => {
+        const targetUS = usCities[i % usCities.length];
+        const startVec = latLonToVector3(intlCity.lat, intlCity.lon, 1.01);
+        const endVec = latLonToVector3(targetUS.lat, targetUS.lon, 1.01);
+
+        const midPoint = new THREE.Vector3().addVectors(startVec, endVec).multiplyScalar(0.5);
+        const distance = startVec.distanceTo(endVec);
+        midPoint.normalize().multiplyScalar(1 + distance * 0.4);
+
+        const curve = new THREE.QuadraticBezierCurve3(startVec, midPoint, endVec);
+        const points = curve.getPoints(80);
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+        const colors = new Float32Array(points.length * 3);
+        for (let j = 0; j < points.length; j++) {
+          const t = j / (points.length - 1);
+          colors[j * 3] = 0.37 + t * 0.17;
+          colors[j * 3 + 1] = 0.85 - t * 0.49;
+          colors[j * 3 + 2] = 1.0 - t * 0.04;
         }
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-        async function loadData() {
-            try {
-                const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch data. Please check your API key and sheet permissions.');
-                }
-                
-                const data = await response.json();
-                processData(data.values);
-            } catch (error) {
-                showError(error.message);
-            }
-        }
+        const arc = new THREE.Line(geometry, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.35 }));
+        arc.userData = { baseOpacity: 0.2 + Math.random() * 0.2, phase: Math.random() * Math.PI * 2 };
+        arcsGroup.add(arc);
+      });
+      scene.add(arcsGroup);
 
-        function processData(rows) {
-            // Skip header row
-            const dataRows = rows.slice(1);
-            
-            allProjects = dataRows
-                .filter(row => row[10]) // Has a Report Interval
-                .map(row => {
-                    const nextDate = row[13]; // 2025 Date Inspected
-                    const lastDate = row[12]; // 2024 Date Inspected
-                    
-                    return {
-                        fundingSource: row[0] || '',
-                        projectNumber: row[1] || '',
-                        apn: row[2] || '',
-                        conservationArea: row[3] || '',
-                        projectName: row[4] || '',
-                        status: row[5] || '',
-                        interval: row[10] || '',
-                        lastInspection: lastDate || 'Not yet',
-                        nextInspection: nextDate || 'TBD',
-                        actionNeeded: row[14] || 'No Action Required',
-                        reportLink: row[15] || ''
-                    };
-                })
-                .filter(p => p.interval && p.interval !== 'Multi parcel grant');
+      // Particles
+      const particlesGroup = new THREE.Group();
+      const particles = [];
 
-            updateStats();
-            renderProjects();
-        }
+      for (let i = 0; i < 60; i++) {
+        const arc = arcsGroup.children[Math.floor(Math.random() * arcsGroup.children.length)];
+        const particle = new THREE.Mesh(
+          new THREE.SphereGeometry(0.006, 8, 8),
+          new THREE.MeshBasicMaterial({ color: 0x5FD9FF, transparent: true, opacity: 0.9 })
+        );
+        particle.userData = { arc, progress: Math.random(), speed: 0.0015 + Math.random() * 0.002 };
+        particles.push(particle);
+        particlesGroup.add(particle);
+      }
+      scene.add(particlesGroup);
 
-        function updateStats() {
-            const today = new Date();
-            const sixtyDaysFromNow = new Date(today.getTime() + (60 * 24 * 60 * 60 * 1000));
-            
-            let overdue = 0;
-            let upcoming = 0;
-            let completed = 0;
+      // Mouse
+      let mouseX = 0, mouseY = 0;
+      document.addEventListener('mousemove', e => {
+        mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+      });
 
-            allProjects.forEach(project => {
-                const nextDate = parseDate(project.nextInspection);
-                const lastDate = parseDate(project.lastInspection);
+      // Animation
+      let time = 0;
+      function animate() {
+        requestAnimationFrame(animate);
+        time += 0.004;
 
-                if (nextDate) {
-                    if (nextDate < today) {
-                        overdue++;
-                    } else if (nextDate <= sixtyDaysFromNow) {
-                        upcoming++;
-                    }
-                }
+        const targetRotY = time * 0.08 + mouseX * 0.4;
+        const targetRotX = mouseY * 0.2;
 
-                if (lastDate && lastDate.getFullYear() === 2025) {
-                    completed++;
-                }
-            });
+        globe.rotation.y += (targetRotY - globe.rotation.y) * 0.015;
+        globe.rotation.x += (targetRotX - globe.rotation.x) * 0.015;
 
-            document.getElementById('overdueCount').textContent = overdue;
-            document.getElementById('upcomingCount').textContent = upcoming;
-            document.getElementById('completedCount').textContent = completed;
-            document.getElementById('totalCount').textContent = allProjects.length;
-        }
+        pointsGroup.rotation.y = globe.rotation.y;
+        pointsGroup.rotation.x = globe.rotation.x;
+        arcsGroup.rotation.y = globe.rotation.y;
+        arcsGroup.rotation.x = globe.rotation.x;
+        particlesGroup.rotation.y = globe.rotation.y;
+        particlesGroup.rotation.x = globe.rotation.x;
 
-        function renderProjects(searchTerm = '') {
-            let filtered = allProjects;
+        arcsGroup.children.forEach(arc => {
+          const pulse = Math.sin(time * 1.5 + arc.userData.phase) * 0.5 + 0.5;
+          arc.material.opacity = arc.userData.baseOpacity * (0.6 + pulse * 0.4);
+        });
 
-            // Apply interval filter
-            if (currentFilter !== 'all') {
-                filtered = filtered.filter(p => p.interval === currentFilter);
-            }
+        particles.forEach(p => {
+          p.userData.progress += p.userData.speed;
+          if (p.userData.progress > 1) {
+            p.userData.progress = 0;
+            p.userData.arc = arcsGroup.children[Math.floor(Math.random() * arcsGroup.children.length)];
+          }
 
-            // Apply search filter
-            if (searchTerm) {
-                const search = searchTerm.toLowerCase();
-                filtered = filtered.filter(p => 
-                    p.projectName.toLowerCase().includes(search) ||
-                    p.apn.toLowerCase().includes(search) ||
-                    p.conservationArea.toLowerCase().includes(search) ||
-                    p.projectNumber.toLowerCase().includes(search)
-                );
-            }
+          const pts = p.userData.arc.geometry.attributes.position.array;
+          const total = pts.length / 3;
+          const idx = Math.floor(p.userData.progress * (total - 1));
+          const next = Math.min(idx + 1, total - 1);
+          const t = (p.userData.progress * (total - 1)) % 1;
 
-            // Sort by next inspection date
-            filtered.sort((a, b) => {
-                const dateA = parseDate(a.nextInspection);
-                const dateB = parseDate(b.nextInspection);
-                if (!dateA) return 1;
-                if (!dateB) return -1;
-                return dateA - dateB;
-            });
+          p.position.x = pts[idx * 3] * (1 - t) + pts[next * 3] * t;
+          p.position.y = pts[idx * 3 + 1] * (1 - t) + pts[next * 3 + 1] * t;
+          p.position.z = pts[idx * 3 + 2] * (1 - t) + pts[next * 3 + 2] * t;
+          p.material.opacity = Math.sin(p.userData.progress * Math.PI) * 0.9;
+        });
 
-            const content = document.getElementById('content');
-            
-            if (filtered.length === 0) {
-                content.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🔍</div>
-                        <h3>No projects found</h3>
-                        <p>Try adjusting your filters or search terms</p>
-                    </div>
-                `;
-                return;
-            }
+        stars.rotation.y = time * 0.015;
+        renderer.render(scene, camera);
+      }
+      animate();
 
-            const html = `
-                <h2 class="section-title">Active Monitoring Projects (${filtered.length})</h2>
-                <div class="project-list">
-                    ${filtered.map(project => createProjectCard(project)).join('')}
-                </div>
-            `;
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    }
 
-            content.innerHTML = html;
-        }
+    init();
 
-        function createProjectCard(project) {
-            const statusClass = getStatusClass(project.nextInspection);
-            const badgeClass = getBadgeClass(project.interval);
-            const statusIndicator = getStatusIndicator(project.nextInspection);
+    // Multi-step CTA form
+    const ctaForm = document.querySelector('.cta-form');
+    let ctaStep = 1;
 
-            return `
-                <div class="project-card ${statusClass}">
-                    <div class="project-header">
-                        <div>
-                            <div class="project-name">${project.projectName}</div>
-                            <div class="project-id">${project.projectNumber} • ${project.conservationArea}</div>
-                        </div>
-                        <span class="project-badge ${badgeClass}">${project.interval}</span>
-                    </div>
-                    <div class="project-details">
-                        <div class="detail-item">
-                            <span class="detail-label">APN</span>
-                            <span class="detail-value">${project.apn}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Last Inspection</span>
-                            <span class="detail-value">${project.lastInspection}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Next Inspection</span>
-                            <span class="detail-value">
-                                <span class="status-indicator ${statusIndicator}"></span>
-                                ${project.nextInspection}
-                            </span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Funding Source</span>
-                            <span class="detail-value">${project.fundingSource}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+    // Option selection
+    ctaForm.querySelectorAll('.form-options').forEach(optionsContainer => {
+      optionsContainer.querySelectorAll('.form-option').forEach(option => {
+        option.addEventListener('click', () => {
+          optionsContainer.querySelectorAll('.form-option').forEach(o => o.classList.remove('selected'));
+          option.classList.add('selected');
+          const nextBtn = option.closest('.form-step').querySelector('.form-next-btn');
+          if (nextBtn) nextBtn.disabled = false;
+        });
+      });
+    });
 
-        function getStatusClass(dateStr) {
-            const date = parseDate(dateStr);
-            if (!date) return 'on-track';
-            
-            const today = new Date();
-            const thirtyDaysFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000));
+    // Step 3 input validation
+    const ctaInputs = ['ctaFirstName', 'ctaLastName', 'ctaEmail'];
+    ctaInputs.forEach(id => {
+      const input = document.getElementById(id);
+      if (input) {
+        input.addEventListener('input', () => {
+          const allFilled = ctaInputs.every(s => document.getElementById(s).value.trim());
+          const submitBtn = ctaForm.querySelector('.form-submit-btn');
+          if (submitBtn) submitBtn.disabled = !allFilled;
+        });
+      }
+    });
 
-            if (date < today) return 'overdue';
-            if (date <= thirtyDaysFromNow) return 'due-soon';
-            return 'on-track';
-        }
+    // Next buttons
+    ctaForm.querySelectorAll('.form-next-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const currentStepEl = ctaForm.querySelector('.form-step.active');
+        currentStepEl.classList.remove('active');
+        ctaStep++;
+        const nextStepEl = ctaForm.querySelector(`[data-form-step="${ctaStep}"]`);
+        if (nextStepEl) nextStepEl.classList.add('active');
+      });
+    });
 
-        function getStatusIndicator(dateStr) {
-            const date = parseDate(dateStr);
-            if (!date) return 'status-good';
-            
-            const today = new Date();
-            const thirtyDaysFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000));
+    // Back buttons
+    ctaForm.querySelectorAll('.form-back-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const currentStepEl = ctaForm.querySelector('.form-step.active');
+        currentStepEl.classList.remove('active');
+        ctaStep--;
+        const prevStepEl = ctaForm.querySelector(`[data-form-step="${ctaStep}"]`);
+        if (prevStepEl) prevStepEl.classList.add('active');
+      });
+    });
 
-            if (date < today) return 'status-overdue';
-            if (date <= thirtyDaysFromNow) return 'status-upcoming';
-            return 'status-good';
-        }
-
-        function getBadgeClass(interval) {
-            if (interval === 'Quarterly') return 'badge-quarterly';
-            if (interval === 'Biannual') return 'badge-biannual';
-            if (interval === 'Annual') return 'badge-annual';
-            return 'badge-quarterly';
-        }
-
-        function parseDate(dateStr) {
-            if (!dateStr || dateStr === 'TBD' || dateStr === 'Not yet') return null;
-            const date = new Date(dateStr);
-            return isNaN(date.getTime()) ? null : date;
-        }
-
-        function showError(message) {
-            document.getElementById('content').innerHTML = `
-                <div class="error">
-                    <h3>⚠️ Error Loading Data</h3>
-                    <p>${message}</p>
-                    <br>
-                    <p><strong>Setup Instructions:</strong></p>
-                    <ol style="margin-left: 20px; margin-top: 10px;">
-                        <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
-                        <li>Create a new project or select existing one</li>
-                        <li>Enable the Google Sheets API</li>
-                        <li>Create an API key in Credentials</li>
-                        <li>Replace 'YOUR_API_KEY_HERE' in this file with your API key</li>
-                        <li>Make sure your spreadsheet is publicly accessible (Anyone with the link can view)</li>
-                    </ol>
-                </div>
-            `;
-        }
-    </script>
+    // Submit button
+    const submitBtn = ctaForm.querySelector('.form-submit-btn');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', () => {
+        const currentStepEl = ctaForm.querySelector('.form-step.active');
+        currentStepEl.classList.remove('active');
+        const successEl = ctaForm.querySelector('[data-form-step="success"]');
+        if (successEl) successEl.classList.add('active');
+      });
+    }
+  </script>
 </body>
 </html>
